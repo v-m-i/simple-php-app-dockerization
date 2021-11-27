@@ -1,0 +1,14 @@
+version: "3"
+services:
+    nginx:
+        image: jwilder/nginx-proxy
+        ports:
+            - "80:80" # We only have to expose nginx port, nginx and apps can communicate out-of-the-box because they are on the same network.
+            - "443:443"
+        volumes:
+            - "/var/run/docker.sock/:/tmp/docker.sock:ro"
+            - "./certs/:/etc/nginx/certs"
+        networks:
+            - 'network'
+networks:
+    network: # We create proxy_network here

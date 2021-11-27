@@ -1,0 +1,32 @@
+version: "3"
+services:
+    app:
+        image: thecodingmachine/php:8.1-v4-apache # Latest at the time of writing this post, with only Apache as we don't need Node.
+        volumes:
+            - ../:/var/www/html
+        environment:
+            PHP_IDE_CONFIG: 'serverName=www.best.com' # Server name that, for example, PhpStorm will use on CLI call.
+            PHP_EXTENSION_XDEBUG: 1
+            PHP_INI_XDEBUG__CLIENT_PORT: 9000
+            APACHE_DOCUMENT_ROOT: 'public/' # Directory where our application entry point is (usually `index.php`).
+            VIRTUAL_HOST: 'www.best.com,app.best.com' # Example how to add multiple hosts to the same app.
+            CERT_NAME: dev # nging-proxy certificate to use
+        networks:
+            - 'default' # All services in the same docker-compose file share same network by default, so we want to keep that.
+            - 'proxy_network' # And we want to add our app to 'proxy_network' so our reverse proxy can communicate with it.
+        # As multiple apps on the same network (proxy_network) have same service name, we have to define hostname, so they can conveniently communicate.
+        # Example: run `docker-compose exec app curl http://best_app` from `apps/awesome/docker` directory.
+        hostname: best_app
+    db:
+        image: mysql
+        ports:
+            - '${DB_PUBLIC_PORT}:3306' # Example of how to use environment variable, so every developer can define his values.
+        volumes:
+            - ./db/data/:/var/lib/mysql
+        environment:
+            TZ: Europe/Zagreb
+            MYSQL_DATABASE: best_db
+            MYSQL_ROOT_PASSWORD: groot
+networks:
+    proxy_network:
+        external: true
